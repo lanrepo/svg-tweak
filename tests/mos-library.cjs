@@ -41,7 +41,7 @@ withEditor(async ({ evalJS, send }) => {
     const closed = $('shapeLibrary').hidden && $('btnShapeLibrary').getAttribute('aria-expanded') === 'false';
     return { initial, open, separate, cards, closed, unchanged: snapshot() === before && state.undo.length === undo && state.dirty === dirty };
   });
-  assert.deepEqual(panel, { initial: true, open: true, separate: true, cards: ['nmos', 'pmos', 'vdd', 'gnd', 'capacitor', 'junction', 'crossover'], closed: true, unchanged: true });
+  assert.deepEqual(panel, { initial: true, open: true, separate: true, cards: ['nmos', 'pmos', 'vdd', 'gnd', 'capacitor', 'junction', 'crossover', 'switch-on', 'switch-off', 'inv', 'nand', 'and', 'nor', 'or', 'xor'], closed: true, unchanged: true });
   results.push('independent library panel and toolbar');
 
   const geometry = await page(() => ['nmos', 'pmos'].map(kind => {
@@ -62,8 +62,8 @@ withEditor(async ({ evalJS, send }) => {
     assert.equal(g.lineWidth, '1'); assert.equal(g.fill, 'none'); assert.ok(g.stroke);
     assert.equal(g.dependency, false);
     assert.deepEqual(g.children, [
-      { tag: 'line', attrs: { x1: '24', y1: '12', x2: '24', y2: '48' } },
-      { tag: 'line', attrs: { x1: '16', y1: '18', x2: '16', y2: '42' } },
+      { tag: 'line', attrs: { x1: '24', y1: '12', x2: '24', y2: '48', 'stroke-width': '2' } },
+      { tag: 'line', attrs: { x1: '16', y1: '18', x2: '16', y2: '42', 'stroke-width': '2' } },
       { tag: 'line', attrs: { x1: '0', y1: '30', x2: kind === 'pmos' ? '8' : '16', y2: '30' } },
       { tag: 'polyline', attrs: { points: '24,18 40,18 40,0' } },
       { tag: 'polyline', attrs: { points: '24,42 40,42 40,60' } },
@@ -213,8 +213,11 @@ withEditor(async ({ evalJS, send }) => {
   near(edited.moved.y - drag.before.y, 19 / drag.scale, 'ordinary group drag y');
   near(edited.moved.w, drag.before.w, 'drag width'); near(edited.moved.h, drag.before.h, 'drag height');
   near(edited.angle, 37, 'rotation input');
-  for (const leaf of edited.leaves) { assert.equal(leaf.stroke, 'rgb(212, 63, 90)'); near(leaf.width, 2.5, 'inherited displayed line width'); }
-  results.push('ordinary move, rotation, uniform stroke color and width editing');
+  edited.leaves.forEach(leaf => {
+    assert.equal(leaf.stroke, 'rgb(212, 63, 90)');
+    near(leaf.width, 2.5, 'whole-symbol displayed line width');
+  });
+  results.push('ordinary move, rotation, uniform stroke color and whole-symbol displayed width editing');
 
   const output = await page(() => {
     const samples = root => [...root.querySelectorAll('line,polyline,circle,ellipse,path')].map(el => {
